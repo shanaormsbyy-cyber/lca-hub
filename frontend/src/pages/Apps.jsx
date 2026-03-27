@@ -59,12 +59,10 @@ export default function Apps() {
         <div className="tile-grid">
           {tiles.map(tile => (
             <div key={tile.id} style={{ position: 'relative' }}>
-              <a href={tile.url} target="_blank" rel="noopener noreferrer" className="tile-card">
-                <div style={{ width: 56, height: 56, borderRadius: 14, background: `${tile.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, border: `1px solid ${tile.color}44` }}>
-                  {tile.icon}
-                </div>
+              <a href={tile.url} target="_blank" rel="noopener noreferrer" className="tile-card" style={{ background: tile.color }}>
+                <div className="tile-icon">{tile.icon}</div>
                 <div className="tile-name">{tile.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--t3)', wordBreak: 'break-all', maxWidth: '100%' }}>{tile.url.replace(/^https?:\/\//, '').slice(0, 30)}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', wordBreak: 'break-all', maxWidth: '100%' }}>{tile.url.replace(/^https?:\/\//, '').slice(0, 30)}</div>
               </a>
               {isAdmin && (
                 <div style={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 4 }}>

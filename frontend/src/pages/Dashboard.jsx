@@ -6,6 +6,13 @@ import Avatar from '../components/Avatar';
 import { fmtRelative } from '../utils';
 import useLiveSync from '../hooks/useLiveSync';
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'morning';
+  if (h < 17) return 'afternoon';
+  return 'evening';
+}
+
 function AnnouncementBanner({ announcement, onDismiss }) {
   return (
     <div className="announcement-banner">
@@ -54,10 +61,10 @@ export default function Dashboard() {
     <div className="page">
       {/* Greeting */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: -0.5 }}>
-          Hey {user?.name?.split(' ')[0]} 👋
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--t1)', letterSpacing: -0.3 }}>
+          Good {getGreeting()}, {user?.name?.split(' ')[0]}
         </h1>
-        <p style={{ color: 'var(--t2)', marginTop: 4 }}>Welcome back to LCA Hub</p>
+        <p style={{ color: 'var(--t3)', marginTop: 4, fontSize: 14 }}>Welcome back to LCA Hub</p>
       </div>
 
       {/* Announcements */}
@@ -70,18 +77,18 @@ export default function Dashboard() {
       )}
 
       {/* App Tiles */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t2)', textTransform: 'uppercase', letterSpacing: 1 }}>Apps</div>
-          <Link to="/apps" style={{ fontSize: 12, color: 'var(--cyan)', textDecoration: 'none' }}>See all →</Link>
+      <div style={{ marginBottom: 32 }}>
+        <div className="section-heading">
+          <span className="section-heading-title">Apps</span>
+          <Link to="/apps" className="section-heading-link">See all →</Link>
         </div>
         {tiles.length === 0 ? (
           <div style={{ color: 'var(--t3)', fontSize: 13 }}>No apps added yet.{isManager && ' Go to Apps to add some.'}</div>
         ) : (
           <div className="tile-grid">
             {tiles.slice(0, 6).map(tile => (
-              <a key={tile.id} href={tile.url} target="_blank" rel="noopener noreferrer" className="tile-card">
-                <div className="tile-icon" style={{ background: `${tile.color}22`, borderRadius: 12, width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{tile.icon}</div>
+              <a key={tile.id} href={tile.url} target="_blank" rel="noopener noreferrer" className="tile-card" style={{ background: tile.color }}>
+                <div className="tile-icon">{tile.icon}</div>
                 <div className="tile-name">{tile.name}</div>
               </a>
             ))}
@@ -91,9 +98,9 @@ export default function Dashboard() {
 
       {/* Feed Preview */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t2)', textTransform: 'uppercase', letterSpacing: 1 }}>Recent Posts</div>
-          <Link to="/feed" style={{ fontSize: 12, color: 'var(--cyan)', textDecoration: 'none' }}>See all →</Link>
+        <div className="section-heading">
+          <span className="section-heading-title">Recent Posts</span>
+          <Link to="/feed" className="section-heading-link">See all →</Link>
         </div>
         {posts.length === 0 ? (
           <div className="empty-state" style={{ padding: '24px 0' }}>
