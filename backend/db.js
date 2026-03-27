@@ -130,6 +130,28 @@ db.exec(`
     created_by  INTEGER NOT NULL REFERENCES users(id),
     created_at  TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS section_access (
+    section     TEXT PRIMARY KEY,
+    min_role    TEXT NOT NULL DEFAULT 'staff'
+  );
 `);
+
+// Seed default section access rules if not yet set
+const sectionDefaults = [
+  { section: 'dashboard',     min_role: 'staff' },
+  { section: 'feed',          min_role: 'staff' },
+  { section: 'announcements', min_role: 'staff' },
+  { section: 'apps',          min_role: 'staff' },
+  { section: 'resources',     min_role: 'staff' },
+  { section: 'messages',      min_role: 'staff' },
+  { section: 'calendar',      min_role: 'staff' },
+  { section: 'team',          min_role: 'staff' },
+  { section: 'admin',         min_role: 'admin' },
+];
+const insertSection = db.prepare('INSERT OR IGNORE INTO section_access (section, min_role) VALUES (?, ?)');
+for (const { section, min_role } of sectionDefaults) {
+  insertSection.run(section, min_role);
+}
 
 module.exports = db;

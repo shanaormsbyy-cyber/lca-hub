@@ -81,6 +81,7 @@ app.use('/api/resources',     require('./routes/resources'));
 app.use('/api/messages',      require('./routes/messages'));
 app.use('/api/events',        require('./routes/events'));
 app.use('/api/tiles',         require('./routes/tiles'));
+app.use('/api/access',        require('./routes/access'));
 
 // Serve built frontend
 const frontendBuild = path.join(__dirname, '..', 'frontend', 'dist');

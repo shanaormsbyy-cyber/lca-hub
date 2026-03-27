@@ -8,8 +8,84 @@ import useLiveSync from '../hooks/useLiveSync';
 
 const ROLE_BADGE = { admin: 'badge-blue', manager: 'badge-green', staff: 'badge-gray' };
 
+const SECTION_LABELS = {
+  dashboard:     { label: 'Dashboard',     icon: '🏠', desc: 'Main home screen' },
+  feed:          { label: 'Feed',          icon: '📰', desc: 'Company posts & reactions' },
+  announcements: { label: 'Announcements', icon: '📢', desc: 'Company announcements' },
+  apps:          { label: 'Apps',          icon: '🔗', desc: 'App tile directory' },
+  resources:     { label: 'Resources',     icon: '📁', desc: 'Policies, guides & files' },
+  messages:      { label: 'Messages',      icon: '💬', desc: 'Direct messaging' },
+  calendar:      { label: 'Calendar',      icon: '📅', desc: 'Events & schedule' },
+  team:          { label: 'Team',          icon: '👥', desc: 'Team directory & profiles' },
+  admin:         { label: 'Admin Panel',   icon: '⚙️', desc: 'User management (locked to admin)' },
+};
+
+function AccessControl() {
+  const { accessRules, loadAccess } = useAuth();
+  const [rules, setRules] = useState({});
+  const [saving, setSaving] = useState(null);
+
+  useEffect(() => { setRules({ ...accessRules }); }, [accessRules]);
+
+  const update = async (section, min_role) => {
+    setSaving(section);
+    try {
+      await api.put(`/access/${section}`, { min_role });
+      setRules(r => ({ ...r, [section]: min_role }));
+      await loadAccess();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update');
+    } finally { setSaving(null); }
+  };
+
+  const ROLE_OPTIONS = [
+    { value: 'staff',   label: 'All Staff',       badge: 'badge-gray' },
+    { value: 'manager', label: 'Manager + Admin',  badge: 'badge-green' },
+    { value: 'admin',   label: 'Admin Only',       badge: 'badge-blue' },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Section Access</h2>
+        <p style={{ fontSize: 13, color: 'var(--t3)' }}>Control which roles can see each section. Changes take effect immediately.</p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {Object.entries(SECTION_LABELS).map(([section, meta]) => {
+          const current = rules[section] ?? 'staff';
+          const locked = section === 'admin' || section === 'dashboard';
+          return (
+            <div key={section} className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px' }}>
+              <div style={{ fontSize: 22, width: 32, textAlign: 'center', flexShrink: 0 }}>{meta.icon}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{meta.label}</div>
+                <div style={{ fontSize: 12, color: 'var(--t3)' }}>{meta.desc}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {ROLE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    disabled={locked || saving === section}
+                    onClick={() => update(section, opt.value)}
+                    className={`btn btn-sm ${current === opt.value ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ fontSize: 12, opacity: locked ? 0.5 : 1 }}
+                    title={locked ? 'This section cannot be changed' : ''}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const { user: me } = useAuth();
+  const [tab, setTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -67,34 +143,52 @@ export default function Admin() {
 
   return (
     <div className="page">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div className="page-header" style={{ marginBottom: 0 }}>
-          <h1>Manage Users</h1>
-          <p>{users.length} team members</p>
+          <h1>Admin Panel</h1>
+          <p>Manage users and access levels</p>
         </div>
-        <button className="btn btn-primary" onClick={openNew}>+ Add User</button>
+        {tab === 'users' && <button className="btn btn-primary" onClick={openNew}>+ Add User</button>}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {users.map(u => (
-          <div key={u.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px' }}>
-            <Avatar name={u.name} color={u.avatar_color} size="md" />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontWeight: 700 }}>{u.name}</span>
-                <span className={`badge ${ROLE_BADGE[u.role] || 'badge-gray'}`}>{u.role}</span>
-                {u.id === me.id && <span className="badge badge-blue">You</span>}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>@{u.username}{u.department ? ` · ${u.department}` : ''}</div>
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowPwModal(u.id)}>🔑 Reset PW</button>
-              <button className="btn btn-secondary btn-sm" onClick={() => openEdit(u)}>Edit</button>
-              {u.id !== me.id && <button className="btn btn-danger btn-sm" onClick={() => del(u.id)}>Delete</button>}
-            </div>
-          </div>
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '2px solid var(--border)', paddingBottom: 0 }}>
+        {[{ key: 'users', label: '👤 Users' }, { key: 'access', label: '🔒 Access Control' }].map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className="btn btn-ghost btn-sm"
+            style={{ borderRadius: '6px 6px 0 0', borderBottom: tab === t.key ? '2px solid var(--brand)' : '2px solid transparent', color: tab === t.key ? 'var(--brand)' : 'var(--t2)', fontWeight: tab === t.key ? 700 : 400, marginBottom: -2 }}
+          >
+            {t.label}
+          </button>
         ))}
       </div>
+
+      {tab === 'access' && <AccessControl />}
+
+      {tab === 'users' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {users.map(u => (
+            <div key={u.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px' }}>
+              <Avatar name={u.name} color={u.avatar_color} size="md" />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontWeight: 700 }}>{u.name}</span>
+                  <span className={`badge ${ROLE_BADGE[u.role] || 'badge-gray'}`}>{u.role}</span>
+                  {u.id === me.id && <span className="badge badge-blue">You</span>}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>@{u.username}{u.department ? ` · ${u.department}` : ''}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => setShowPwModal(u.id)}>🔑 Reset PW</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => openEdit(u)}>Edit</button>
+                {u.id !== me.id && <button className="btn btn-danger btn-sm" onClick={() => del(u.id)}>Delete</button>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {showModal && (
         <Modal title={editing ? `Edit ${editing.name}` : 'Add User'} onClose={() => setShowModal(false)}>

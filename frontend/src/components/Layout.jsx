@@ -5,18 +5,18 @@ import Avatar from './Avatar';
 import api from '../api';
 
 const NAV = [
-  { to: '/', icon: '🏠', label: 'Dashboard', exact: true },
-  { to: '/feed', icon: '📰', label: 'Feed' },
-  { to: '/announcements', icon: '📢', label: 'Announcements' },
-  { to: '/apps', icon: '🔗', label: 'Apps' },
-  { to: '/resources', icon: '📁', label: 'Resources' },
-  { to: '/messages', icon: '💬', label: 'Messages' },
-  { to: '/calendar', icon: '📅', label: 'Calendar' },
-  { to: '/team', icon: '👥', label: 'Team' },
+  { to: '/',             icon: '🏠', label: 'Dashboard',     exact: true,  section: 'dashboard' },
+  { to: '/feed',         icon: '📰', label: 'Feed',                         section: 'feed' },
+  { to: '/announcements',icon: '📢', label: 'Announcements',                section: 'announcements' },
+  { to: '/apps',         icon: '🔗', label: 'Apps',                         section: 'apps' },
+  { to: '/resources',    icon: '📁', label: 'Resources',                    section: 'resources' },
+  { to: '/messages',     icon: '💬', label: 'Messages',                     section: 'messages' },
+  { to: '/calendar',     icon: '📅', label: 'Calendar',                     section: 'calendar' },
+  { to: '/team',         icon: '👥', label: 'Team',                         section: 'team' },
 ];
 
 export default function Layout() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, canAccess } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -28,6 +28,8 @@ export default function Layout() {
   }, []);
 
   const handleLogout = () => { logout(); navigate('/login'); };
+
+  const visibleNav = NAV.filter(item => canAccess(item.section));
 
   const SidebarContent = () => (
     <>
@@ -41,7 +43,7 @@ export default function Layout() {
 
       <nav className="sidebar-nav">
         <div className="sidebar-section-label">Menu</div>
-        {NAV.map(item => (
+        {visibleNav.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
