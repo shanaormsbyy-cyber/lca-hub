@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>LCA Cleaning Services — App Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --cyan:#3AB5D9;
+  --cyan-dim:rgba(58,181,217,0.18);
+  --cyan-border:rgba(58,181,217,0.30);
+  --white:#fff;
+  --t1:rgba(255,255,255,0.95);
+  --t2:rgba(255,255,255,0.58);
+  --t3:rgba(255,255,255,0.32);
+  --green:#2ecc71;
+  --green-dim:rgba(46,204,113,0.16);
+  --green-border:rgba(46,204,113,0.32);
+  --card:rgba(255,255,255,0.07);
+  --card-hover:rgba(255,255,255,0.12);
+  --border:rgba(255,255,255,0.10);
+  --border-hover:rgba(255,255,255,0.22);
+  --bg:linear-gradient(150deg,#07112b 0%,#0e2050 45%,#081830 100%);
+  --modal-bg:rgba(5,10,25,0.88);
+  --radius:16px;
+}
+body{
+  font-family:'Segoe UI',system-ui,Arial,sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  color:var(--t1);
+}
+
+/* ══════════════════════════════════════════
+   LOGIN OVERLAY
+══════════════════════════════════════════ */
+#login-overlay{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;
+  padding:20px;
+}
+#login-overlay.hidden{display:none;}
+
+.login-box{
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:40px 36px;
+  width:100%;max-width:380px;
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  text-align:center;
+}
+.login-brand{
+  display:flex;align-items:baseline;gap:7px;
+  justify-content:center;margin-bottom:24px;
+}
+.login-lca{font-size:28px;font-weight:900;color:var(--white);letter-spacing:-1px;}
+.login-rest{font-size:13px;font-weight:600;color:var(--cyan);letter-spacing:.3px;}
+.login-title{font-size:18px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.login-sub{font-size:12px;color:var(--t2);margin-bottom:28px;line-height:1.5;}
+
+.login-input{
+  width:100%;
+  background:rgba(255,255,255,0.07);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 16px;
+  font-size:14px;
+  color:var(--white);
+  outline:none;
+  margin-bottom:12px;
+  transition:border-color .2s;
+  font-family:inherit;
+}
+.login-input::placeholder{color:var(--t3);}
+.login-input:focus{border-color:var(--cyan);}
+
+.login-btn{
+  width:100%;
+  background:var(--cyan);
+  color:#07112b;
+  border:none;
+  border-radius:10px;
+  padding:13px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  letter-spacing:.3px;
+  transition:opacity .2s,transform .2s;
+  font-family:inherit;
+  margin-top:4px;
+}
+.login-btn:hover{opacity:.88;transform:translateY(-1px);}
+.login-btn:active{transform:translateY(0);}
+
+.login-error{
+  font-size:12px;color:#e74c3c;
+  margin-top:10px;
+  min-height:16px;
+}
+.login-hint{
+  font-size:11px;color:var(--t3);
+  margin-top:18px;
+  line-height:1.6;
+}
+
+/* ══════════════════════════════════════════
+   MAIN HUB
+══════════════════════════════════════════ */
+#hub{display:none;}
+#hub.visible{display:block;}
+
+/* ─── HEADER ─────────────────────────────── */
+.header{
+  padding:32px 24px 0;
+  text-align:center;
+  position:relative;
+}
+.header-actions{
+  position:absolute;top:28px;right:24px;
+  display:flex;align-items:center;gap:10px;
+}
+.welcome-badge{
+  font-size:11px;color:var(--t2);
+  background:rgba(255,255,255,0.07);
+  border:1px solid var(--border);
+  border-radius:99px;
+  padding:5px 12px;
+  letter-spacing:.2px;
+}
+.icon-btn{
+  background:rgba(255,255,255,0.08);
+  border:1px solid var(--border);
+  border-radius:99px;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;
+  transition:background .2s,border-color .2s;
+  color:var(--t1);
+  text-decoration:none;
+}
+.icon-btn:hover{background:rgba(255,255,255,0.14);border-color:var(--border-hover);}
+.icon-btn.admin-only{display:none;}
+
+.brand-small{display:inline-flex;align-items:baseline;gap:6px;margin-bottom:26px;}
+.brand-lca{font-size:15px;font-weight:800;color:var(--white);letter-spacing:-0.3px;}
+.brand-rest{font-size:15px;font-weight:500;color:var(--cyan);letter-spacing:.2px;}
+.hero-title{
+  font-size:clamp(26px,5vw,42px);font-weight:800;
+  color:var(--white);letter-spacing:-1px;line-height:1.1;margin-bottom:10px;
+}
+.hero-title span{color:var(--cyan);}
+.hero-sub{font-size:14px;color:var(--t2);margin-bottom:38px;letter-spacing:.2px;}
+
+/* ─── GRID ───────────────────────────────── */
+.main{padding:0 20px 60px;max-width:1020px;margin:0 auto;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+
+/* ─── CARD ───────────────────────────────── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  transition:background .22s,border-color .22s,transform .22s,box-shadow .22s;
+}
+a.card:hover{
+  background:var(--card-hover);border-color:var(--border-hover);
+  transform:translateY(-4px);
+  box-shadow:0 16px 48px rgba(0,0,0,.45),0 0 0 1px rgba(58,181,217,.12);
+}
+.card.disabled{cursor:default;pointer-events:none;}
+
+.card-img{
+  width:100%;height:136px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:50px;position:relative;overflow:hidden;flex-shrink:0;
+}
+.bg-teal  {background:linear-gradient(135deg,rgba(58,181,217,.18)  0%,rgba(58,181,217,.04)  100%);}
+.bg-green {background:linear-gradient(135deg,rgba(46,204,113,.18)  0%,rgba(46,204,113,.04)  100%);}
+.bg-yellow{background:linear-gradient(135deg,rgba(241,196,15,.18)  0%,rgba(241,196,15,.04)  100%);}
+.bg-orange{background:linear-gradient(135deg,rgba(230,126,34,.18)  0%,rgba(230,126,34,.04)  100%);}
+.bg-purple{background:linear-gradient(135deg,rgba(155,89,182,.18)  0%,rgba(155,89,182,.04)  100%);}
+.bg-gray  {background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 100%);}
+
+.card-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  padding:3px 8px;border-radius:99px;margin-bottom:10px;width:fit-content;
+}
+.badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.badge.live{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+.badge.live .badge-dot{background:var(--green);box-shadow:0 0 5px var(--green);}
+.badge.coming{background:rgba(58,181,217,.14);color:var(--cyan);border:1px solid var(--cyan-border);}
+.badge.coming .badge-dot{background:var(--cyan);}
+.badge.planned{background:rgba(255,255,255,.07);color:var(--t2);border:1px solid rgba(255,255,255,.12);}
+.badge.planned .badge-dot{background:var(--t3);}
+
+.card-title{font-size:15px;font-weight:700;color:var(--white);margin-bottom:6px;line-height:1.3;}
+.card-desc{font-size:12px;color:var(--t2);line-height:1.65;flex:1;}
+.card-link{
+  margin-top:14px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:5px;
+  transition:gap .2s;
+}
+.card-link.ll{color:var(--green);}
+.card-link.cl{color:var(--cyan);}
+.card-link.pl{color:var(--t3);}
+a.card:hover .card-link{gap:8px;}
+
+/* ══════════════════════════════════════════
+   ADMIN PANEL MODAL
+══════════════════════════════════════════ */
+#admin-panel{
+  position:fixed;inset:0;
+  background:var(--modal-bg);
+  z-index:8000;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+#admin-panel.hidden{display:none;}
+
+.panel-box{
+  background:#0d1e45;
+  border:1px solid rgba(58,181,217,.22);
+  border-radius:20px;
+  width:100%;max-width:520px;
+  max-height:90vh;
+  overflow-y:auto;
+  padding:32px 28px 28px;
+}
+.panel-box::-webkit-scrollbar{width:4px;}
+.panel-box::-webkit-scrollbar-track{background:transparent;}
+.panel-box::-webkit-scrollbar-thumb{background:rgba(58,181,217,.3);border-radius:4px;}
+
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.panel-title{font-size:18px;font-weight:700;color:var(--white);}
+.panel-close{
+  background:rgba(255,255,255,.08);border:1px solid var(--border);
+  border-radius:99px;width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;color:var(--t2);
+  transition:background .2s;
+  flex-shrink:0;
+}
+.panel-close:hover{background:rgba(255,255,255,.15);}
+.panel-sub{font-size:12px;color:var(--t2);margin-bottom:24px;line-height:1.5;}
+
+.section-title{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--t3);
+  margin-bottom:12px;padding-left:2px;
+}
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:8px;
+  gap:12px;
+}
+.toggle-info{display:flex;align-items:center;gap:10px;min-width:0;}
+.toggle-icon{font-size:20px;flex-shrink:0;}
+.toggle-label{font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toggle-status{font-size:10px;color:var(--t3);margin-top:1px;}
+
+/* toggle switch */
+.switch{
+  position:relative;display:inline-block;
+  width:42px;height:24px;flex-shrink:0;
+}
+.switch input{opacity:0;width:0;height:0;}
+.slider{
+  position:absolute;cursor:pointer;inset:0;
+  background:rgba(255,255,255,.12);
+  border-radius:99px;transition:.3s;
+  border:1px solid rgba(255,255,255,.15);
+}
+.slider:before{
+  position:absolute;content:"";
+  height:18px;width:18px;
+  left:2px;bottom:2px;
+  background:rgba(255,255,255,.5);
+  border-radius:50%;transition:.3s;
+}
+.switch input:checked + .slider{background:var(--cyan);border-color:var(--cyan);}
+.switch input:checked + .slider:before{transform:translateX(18px);background:#fff;}
+
+.panel-divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
+
+.creds-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.cred-group{display:flex;flex-direction:column;gap:6px;}
+.cred-label{font-size:11px;color:var(--t2);font-weight:600;letter-spacing:.3px;}
+.panel-input{
+  background:rgba(255,255,255,.07);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+  font-size:13px;color:var(--white);outline:none;
+  transition:border-color .2s;font-family:inherit;width:100%;
+}
+.panel-input::placeholder{color:var(--t3);}
+.panel-input:focus{border-color:var(--cyan);}
+
+.panel-btn{
+  background:var(--cyan);color:#07112b;
+  border:none;border-radius:8px;padding:10px 18px;
+  font-size:13px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:opacity .2s;
+}
+.panel-btn:hover{opacity:.85;}
+.panel-btn.secondary{
+  background:rgba(255,255,255,.08);color:var(--t1);
+  border:1px solid var(--border);
+}
+.panel-btn.secondary:hover{background:rgba(255,255,255,.14);}
+.panel-btn.danger{background:rgba(231,76,60,.18);color:#e74c3c;border:1px solid rgba(231,76,60,.3);}
+.panel-btn.danger:hover{background:rgba(231,76,60,.28);}
+.panel-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+.panel-save-msg{font-size:12px;color:var(--green);margin-top:8px;min-height:16px;}
+
+/* ─── FOOTER ─────────────────────────────── */
+.footer{
+  text-align:center;padding:22px 20px;
+  font-size:11px;color:var(--t3);letter-spacing:.3px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+
+/* ─── RESPONSIVE ─────────────────────────── */
+@media(max-width:720px){
+  .grid{grid-template-columns:repeat(2,1fr);}
+  .hero-title{font-size:24px;}
+  .creds-grid{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr;}
+  .main{padding:0 14px 50px;}
+  .header{padding:22px 14px 0;}
+  .header-actions{top:18px;right:14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN OVERLAY
+══════════════════════════════════════════ -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-brand">
+      <span class="login-lca">LCA</span>
+      <span class="login-rest">cleaning services</span>
+    </div>
+    <div class="login-title">App Hub</div>
+    <div class="login-sub">Enter your access code to continue</div>
+    <input class="login-input" id="login-password" type="password" placeholder="Access code" autocomplete="off"/>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-hint">Contact your manager if you don't have an access code.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN HUB
+══════════════════════════════════════════ -->
+<div id="hub">
+
+  <div class="header">
+    <div class="header-actions">
+      <span class="welcome-badge" id="welcome-badge"></span>
+      <div class="icon-btn admin-only" id="admin-btn" title="Access Control" onclick="openPanel()">⚙️</div>
+      <div class="icon-btn" title="Sign out" onclick="doLogout()">↩</div>
+    </div>
+    <div class="brand-small">
+      <span class="brand-lca">LCA</span>
+      <span class="brand-rest">cleaning services</span>
+    </div>
+    <h1 class="hero-title">LCA Cleaning <span>App Hub</span></h1>
+    <p class="hero-sub">Internal tools and systems for the team</p>
+  </div>
+
+  <main class="main">
+    <div class="grid" id="card-grid"></div>
+  </main>
+
+  <footer class="footer">LCA Cleaning Services &mdash; Hamilton, NZ &mdash; Internal Tools Portal</footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADMIN PANEL
+══════════════════════════════════════════ -->
+<div id="admin-panel" class="hidden">
+  <div class="panel-box">
+    <div class="panel-header">
+      <div class="panel-title">Access Control</div>
+      <div class="panel-close" onclick="closePanel()">✕</div>
+    </div>
+    <p class="panel-sub">Toggle which apps staff members can see. Admins always see everything.</p>
+
+    <div class="section-title">Staff App Visibility</div>
+    <div id="toggle-list"></div>
+
+    <hr class="panel-divider"/>
+
+    <div class="section-title">Access Codes</div>
+    <div class="creds-grid">
+      <div class="cred-group">
+        <label class="cred-label">Admin Code</label>
+        <input class="panel-input" id="new-admin-pw" type="password" placeholder="New admin code"/>
+      </div>
+      <div class="cred-group">
+        <label class="cred-label">Staff Code</label>
+        <input class="panel-input" id="new-staff-pw" type="password" placeholder="New staff code"/>
+      </div>
+    </div>
+    <div class="panel-actions">
+      <button class="panel-btn" onclick="saveCreds()">Save Codes</button>
+      <button class="panel-btn secondary" onclick="closePanel()">Done</button>
+      <button class="panel-btn danger" onclick="doLogout()">Sign Out</button>
+    </div>
+    <div class="panel-save-msg" id="save-msg"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════
+   APP DEFINITIONS
+═══════════════════════════════════ */
+const APPS = [
+  {
+    id:'team-chat',
+    emoji:'💬', bg:'bg-teal',
+    title:'Team Chat',
+    desc:'Slack-style team messaging with channels for jobs, shifts, QC, and management. Built-in AI assistant for scheduling, drafts, and task help.',
+    status:'live',
+    href:'../lca-chat-app/index.html',
+    defaultStaff:true
+  },
+  {
+    id:'staff-db',
+    emoji:'👥', bg:'bg-purple',
+    title:'Staff Database',
+    desc:'Manage your team. Store contact details, availability, emergency contacts, payroll info, and notes for every staff member.',
+    status:'live',
+    href:'../lca-staff-app/index.html',
+    defaultStaff:false
+  },
+  {
+    id:'quote-calc',
+    emoji:'💲', bg:'bg-teal',
+    title:'Quote Calculator',
+    desc:'Build Airbnb cleaning quotes by section. Set your own rates, add travel fees, GST, and generate a printable quote.',
+    status:'live',
+    href:'../lca-quote-app/index.html',
+    defaultStaff:false
+  },
+  {
+    id:'clean-tracker',
+    emoji:'🧹', bg:'bg-teal',
+    title:'Clean Tracker',
+    desc:'Log and track daily cleans. Record completed jobs, notes, and property details for each shift.',
+    status:'live',
+    href:'../lca-cleaner-app/index.html',
+    defaultStaff:true
+  },
+  {
+    id:'qc-training',
+    emoji:'✅', bg:'bg-green',
+    title:'Quality Control and Training',
+    desc:'Submit and review QC checklists for every property clean. Access training resources and inspection guides.',
+    status:'live',
+    href:'../lca-qc-app/frontend/index.html',
+    defaultStaff:true
+  },
+  {
+    id:'performance',
+    emoji:'⭐', bg:'bg-orange',
+    title:'Performance Tracker Scoreboard',
+    desc:'Performance points, rewards, and team rankings. Manage cleaner point balances, bonuses, and achievements.',
+    status:'live',
+    href:'../lca-points-app/index.html',
+    defaultStaff:false
+  },
+  {
+    id:'onboarding',
+    emoji:'👋', bg:'bg-purple',
+    title:'New Cleaner Onboarding',
+    desc:'Welcome new staff. Step-by-step onboarding with pre-shift checklist, registration, and admin view.',
+    status:'live',
+    href:'../lca-cleaning-onboarding/index.html',
+    defaultStaff:true
+  },
+  {
+    id:'schedule',
+    emoji:'📅', bg:'bg-gray',
+    title:'Schedule Manager',
+    desc:'Assign cleaners to properties, manage turnaround windows, and handle shift swaps across the team.',
+    status:'coming',
+    href:null,
+    defaultStaff:false
+  },
+  {
+    id:'payroll',
+    emoji:'💰', bg:'bg-gray',
+    title:'Payroll Export',
+    desc:'Calculate cleaner pay per job and export Xero-ready payroll files at the end of each pay period.',
+    status:'coming',
+    href:null,
+    defaultStaff:false
+  },
+  {
+    id:'comms',
+    emoji:'📩', bg:'bg-gray',
+    title:'Client Comms',
+    desc:'Automated updates to property managers. Send job completion notices, QC reports, and booking confirmations.',
+    status:'planned',
+    href:null,
+    defaultStaff:false
+  },
+  {
+    id:'supplies',
+    emoji:'🧴', bg:'bg-gray',
+    title:'Supplies Tracker',
+    desc:'Track cleaning supply inventory levels and get alerts when stock is running low across the team.',
+    status:'planned',
+    href:null,
+    defaultStaff:false
+  }
+];
+
+/* ═══════════════════════════════════
+   STORAGE HELPERS
+═══════════════════════════════════ */
+function getSettings() {
+  const defaults = {
+    adminPw: 'admin1234',
+    staffPw: 'staff1234',
+    staffVisible: APPS.filter(a=>a.defaultStaff).map(a=>a.id)
+  };
+  try {
+    const s = JSON.parse(localStorage.getItem('lca_hub_settings') || '{}');
+    return {...defaults, ...s};
+  } catch(e) { return defaults; }
+}
+function saveSettings(s) {
+  localStorage.setItem('lca_hub_settings', JSON.stringify(s));
+}
+
+/* ═══════════════════════════════════
+   AUTH
+═══════════════════════════════════ */
+function doLogin() {
+  const pw = document.getElementById('login-password').value.trim();
+  const s = getSettings();
+  if (pw === s.adminPw) {
+    sessionStorage.setItem('lca_role','admin');
+    showHub('admin');
+  } else if (pw === s.staffPw) {
+    sessionStorage.setItem('lca_role','staff');
+    showHub('staff');
+  } else {
+    document.getElementById('login-error').textContent = 'Incorrect code — try again.';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+  }
+}
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+  document.getElementById('login-error').textContent = '';
+});
+
+function doLogout() {
+  sessionStorage.removeItem('lca_role');
+  document.getElementById('hub').classList.remove('visible');
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('login-password').value = '';
+  closePanel();
+}
+
+/* ═══════════════════════════════════
+   RENDER HUB
+═══════════════════════════════════ */
+function showHub(role) {
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('hub').classList.add('visible');
+
+  const isAdmin = role === 'admin';
+
+  // welcome badge
+  document.getElementById('welcome-badge').textContent = isAdmin ? 'Admin' : 'Staff';
+
+  // show admin gear if admin
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? 'flex' : 'none';
+  });
+
+  renderCards(role);
+}
+
+function renderCards(role) {
+  const isAdmin = role === 'admin';
+  const s = getSettings();
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = '';
+
+  APPS.forEach(app => {
+    // staff visibility check
+    if (!isAdmin && !s.staffVisible.includes(app.id)) return;
+
+    const isLive = app.status === 'live';
+    const isComing = app.status === 'coming';
+    const badgeClass = isLive ? 'live' : isComing ? 'coming' : 'planned';
+    const badgeText = isLive ? 'Live' : isComing ? 'Coming Soon' : 'Planned';
+    const linkClass = isLive ? 'll' : isComing ? 'cl' : 'pl';
+    const linkText = isLive ? 'Open tool →' : 'Coming soon →';
+    const Tag = isLive ? 'a' : 'div';
+    const href = isLive && app.href ? `href="${app.href}"` : '';
+    const disabled = !isLive ? 'disabled' : '';
+
+    grid.insertAdjacentHTML('beforeend', `
+      <${Tag} class="card ${disabled}" ${href}>
+        <div class="card-img ${app.bg}">${app.emoji}</div>
+        <div class="card-body">
+          <span class="badge ${badgeClass}"><span class="badge-dot"></span>${badgeText}</span>
+          <div class="card-title">${app.title}</div>
+          <div class="card-desc">${app.desc}</div>
+          <div class="card-link ${linkClass}">${linkText}</div>
+        </div>
+      </${Tag}>
+    `);
+  });
+}
+
+/* ═══════════════════════════════════
+   ADMIN PANEL
+═══════════════════════════════════ */
+function openPanel() {
+  buildToggleList();
+  document.getElementById('admin-panel').classList.remove('hidden');
+}
+function closePanel() {
+  document.getElementById('admin-panel').classList.add('hidden');
+  document.getElementById('save-msg').textContent = '';
+}
+
+function buildToggleList() {
+  const s = getSettings();
+  const list = document.getElementById('toggle-list');
+  list.innerHTML = '';
+
+  APPS.forEach(app => {
+    const checked = s.staffVisible.includes(app.id) ? 'checked' : '';
+    const statusText = app.status === 'live' ? 'Live' : app.status === 'coming' ? 'Coming Soon' : 'Planned';
+    list.insertAdjacentHTML('beforeend', `
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="toggle-icon">${app.emoji}</span>
+          <div>
+            <div class="toggle-label">${app.title}</div>
+            <div class="toggle-status">${statusText}</div>
+          </div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="tog-${app.id}" ${checked} onchange="toggleApp('${app.id}', this.checked)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+    `);
+  });
+}
+
+function toggleApp(id, visible) {
+  const s = getSettings();
+  if (visible) {
+    if (!s.staffVisible.includes(id)) s.staffVisible.push(id);
+  } else {
+    s.staffVisible = s.staffVisible.filter(x => x !== id);
+  }
+  saveSettings(s);
+}
+
+function saveCreds() {
+  const s = getSettings();
+  const newAdmin = document.getElementById('new-admin-pw').value.trim();
+  const newStaff = document.getElementById('new-staff-pw').value.trim();
+  let changed = false;
+  if (newAdmin) { s.adminPw = newAdmin; changed = true; }
+  if (newStaff) { s.staffPw = newStaff; changed = true; }
+  if (changed) {
+    saveSettings(s);
+    document.getElementById('new-admin-pw').value = '';
+    document.getElementById('new-staff-pw').value = '';
+    document.getElementById('save-msg').textContent = '✓ Access codes updated.';
+    setTimeout(() => document.getElementById('save-msg').textContent = '', 3000);
+  }
+}
+
+/* ═══════════════════════════════════
+   AUTO LOGIN (session persistence)
+═══════════════════════════════════ */
+const savedRole = sessionStorage.getItem('lca_role');
+if (savedRole === 'admin' || savedRole === 'staff') {
+  showHub(savedRole);
+}
+
+/* close panel on backdrop click */
+document.getElementById('admin-panel').addEventListener('click', function(e) {
+  if (e.target === this) closePanel();
+});
+</script>
+</body>
+</html>
