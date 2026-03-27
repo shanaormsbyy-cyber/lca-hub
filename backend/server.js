@@ -16,8 +16,37 @@ const db = require('./db');
 const { addClient, removeClient, emit } = require('./emitter');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Only allow requests from Railway domain + localhost in dev
+const allowedOrigins = process.env.ALLOWED_ORIGIN
+  ? [process.env.ALLOWED_ORIGIN, 'http://localhost:3002', 'http://localhost:5173']
+  : true; // allow all in dev
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+
+// Limit request body size to prevent abuse
+app.use(express.json({ limit: '2mb' }));
+
+// Basic rate limiting on auth endpoints (no extra package needed)
+const loginAttempts = new Map();
+app.use('/api/auth/login', (req, res, next) => {
+  const ip = req.ip;
+  const now = Date.now();
+  const attempts = loginAttempts.get(ip) || [];
+  const recent = attempts.filter(t => now - t < 15 * 60 * 1000); // 15 min window
+  if (recent.length >= 10) return res.status(429).json({ error: 'Too many login attempts. Try again in 15 minutes.' });
+  recent.push(now);
+  loginAttempts.set(ip, recent);
+  next();
+});
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 
 // SSE live-sync
 app.get('/api/events-stream', (req, res) => {
