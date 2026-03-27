@@ -16,7 +16,8 @@ const SECTION_LABELS = {
   resources:     { label: 'Resources',     icon: '📁', desc: 'Policies, guides & files' },
   messages:      { label: 'Messages',      icon: '💬', desc: 'Direct messaging' },
   calendar:      { label: 'Calendar',      icon: '📅', desc: 'Events & schedule' },
-  team:          { label: 'Team',          icon: '👥', desc: 'Team directory & profiles' },
+  team:          { label: 'Team',           icon: '👥', desc: 'Team directory & profiles' },
+  directory:     { label: 'Staff Directory',icon: '📋', desc: 'Phone, working days & city info' },
   admin:         { label: 'Admin Panel',   icon: '⚙️', desc: 'User management (locked to admin)' },
 };
 

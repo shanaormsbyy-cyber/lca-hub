@@ -6,7 +6,7 @@ import { AVATAR_COLORS } from '../utils';
 
 export default function MyProfile() {
   const { user, refreshUser } = useAuth();
-  const [form, setForm] = useState({ name: user?.name || '', department: user?.department || '', avatar_color: user?.avatar_color || '#3AB5D9' });
+  const [form, setForm] = useState({ name: user?.name || '', department: user?.department || '', avatar_color: user?.avatar_color || '#3AB5D9', phone: user?.phone || '', working_days: user?.working_days || '' });
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
   const [saving, setSaving] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
@@ -64,6 +64,14 @@ export default function MyProfile() {
           <div className="form-group">
             <label className="form-label">Department</label>
             <input className="form-input" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} placeholder="e.g. Operations" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Phone Number</label>
+            <input className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="e.g. 0400 000 000" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Working Days</label>
+            <input className="form-input" value={form.working_days} onChange={e => setForm(f => ({ ...f, working_days: e.target.value }))} placeholder="e.g. Mon, Wed, Fri" />
           </div>
           <div className="form-group">
             <label className="form-label">Avatar Color</label>

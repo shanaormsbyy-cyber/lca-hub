@@ -13,6 +13,7 @@ import Team from './pages/Team';
 import Profile from './pages/Profile';
 import MyProfile from './pages/MyProfile';
 import Admin from './pages/Admin';
+import Directory from './pages/Directory';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="calendar" element={<RequireAccess section="calendar"><Calendar /></RequireAccess>} />
             <Route path="team" element={<RequireAccess section="team"><Team /></RequireAccess>} />
             <Route path="team/:id" element={<RequireAccess section="team"><Profile /></RequireAccess>} />
+            <Route path="directory" element={<RequireAccess section="directory"><Directory /></RequireAccess>} />
             <Route path="profile" element={<MyProfile />} />
             <Route path="admin" element={<RequireAccess section="admin"><Admin /></RequireAccess>} />
           </Route>

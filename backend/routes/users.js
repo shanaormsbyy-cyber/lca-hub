@@ -7,12 +7,20 @@ const router = express.Router();
 router.use(requireAuth());
 
 router.get('/', (req, res) => {
-  const users = db.prepare('SELECT id, username, name, role, department, avatar_color, created_at FROM users ORDER BY name').all();
+  const users = db.prepare(`
+    SELECT u.id, u.username, u.name, u.role, u.department, u.avatar_color, u.phone, u.working_days, u.city_id, c.name as city_name, u.created_at
+    FROM users u LEFT JOIN cities c ON c.id = u.city_id
+    ORDER BY u.name
+  `).all();
   res.json(users);
 });
 
 router.get('/:id', (req, res) => {
-  const user = db.prepare('SELECT id, username, name, role, department, avatar_color, created_at FROM users WHERE id=?').get(req.params.id);
+  const user = db.prepare(`
+    SELECT u.id, u.username, u.name, u.role, u.department, u.avatar_color, u.phone, u.working_days, u.city_id, c.name as city_name, u.created_at
+    FROM users u LEFT JOIN cities c ON c.id = u.city_id
+    WHERE u.id=?
+  `).get(req.params.id);
   if (!user) return res.status(404).json({ error: 'Not found' });
   res.json(user);
 });
@@ -31,8 +39,9 @@ router.post('/', requireAuth(['admin']), (req, res) => {
 });
 
 router.put('/:id', requireAuth(['admin']), (req, res) => {
-  const { name, role, department, avatar_color } = req.body;
-  db.prepare('UPDATE users SET name=?, role=?, department=?, avatar_color=? WHERE id=?').run(name, role, department || '', avatar_color || '#3AB5D9', req.params.id);
+  const { name, role, department, avatar_color, phone, working_days, city_id } = req.body;
+  db.prepare('UPDATE users SET name=?, role=?, department=?, avatar_color=?, phone=?, working_days=?, city_id=? WHERE id=?')
+    .run(name, role, department || '', avatar_color || '#3AB5D9', phone || '', working_days || '', city_id || null, req.params.id);
   res.json({ ok: true });
 });
 
@@ -41,8 +50,9 @@ router.put('/:id/profile', requireAuth(), (req, res) => {
   if (req.user.id !== parseInt(req.params.id) && req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Forbidden' });
   }
-  const { name, department, avatar_color } = req.body;
-  db.prepare('UPDATE users SET name=?, department=?, avatar_color=? WHERE id=?').run(name, department || '', avatar_color || '#3AB5D9', req.params.id);
+  const { name, department, avatar_color, phone, working_days } = req.body;
+  db.prepare('UPDATE users SET name=?, department=?, avatar_color=?, phone=?, working_days=? WHERE id=?')
+    .run(name, department || '', avatar_color || '#3AB5D9', phone || '', working_days || '', req.params.id);
   res.json({ ok: true });
 });
 

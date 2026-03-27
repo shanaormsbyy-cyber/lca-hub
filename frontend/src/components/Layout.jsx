@@ -13,6 +13,7 @@ const NAV = [
   { to: '/messages',     icon: '💬', label: 'Messages',                     section: 'messages' },
   { to: '/calendar',     icon: '📅', label: 'Calendar',                     section: 'calendar' },
   { to: '/team',         icon: '👥', label: 'Team',                         section: 'team' },
+  { to: '/directory',   icon: '📋', label: 'Staff Directory',               section: 'directory' },
 ];
 
 export default function Layout() {

@@ -135,7 +135,21 @@ db.exec(`
     section     TEXT PRIMARY KEY,
     min_role    TEXT NOT NULL DEFAULT 'staff'
   );
+
+  CREATE TABLE IF NOT EXISTS cities (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT UNIQUE NOT NULL,
+    order_idx  INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `);
+
+// Add new user columns if they don't exist yet (safe on existing DB)
+const userCols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+if (!userCols.includes('phone'))        db.exec("ALTER TABLE users ADD COLUMN phone TEXT DEFAULT ''");
+if (!userCols.includes('working_days')) db.exec("ALTER TABLE users ADD COLUMN working_days TEXT DEFAULT ''");
+if (!userCols.includes('city_id'))      db.exec("ALTER TABLE users ADD COLUMN city_id INTEGER REFERENCES cities(id)");
+
 
 // Seed default section access rules if not yet set
 const sectionDefaults = [
@@ -147,6 +161,7 @@ const sectionDefaults = [
   { section: 'messages',      min_role: 'staff' },
   { section: 'calendar',      min_role: 'staff' },
   { section: 'team',          min_role: 'staff' },
+  { section: 'directory',     min_role: 'staff' },
   { section: 'admin',         min_role: 'admin' },
 ];
 const insertSection = db.prepare('INSERT OR IGNORE INTO section_access (section, min_role) VALUES (?, ?)');
